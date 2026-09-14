@@ -7,6 +7,8 @@ Prototype implementing the **Manage Intercompany Jobs** modal updates:
 - Already-copied jobs stay visible, **greyed out**, with **(copied)** appended
 - **Save** updates the status table in-modal — no full page refresh
 
+UX acceptance criteria for QA and design review: [docs/UX_ACCEPTANCE_CRITERIA.md](docs/UX_ACCEPTANCE_CRITERIA.md).
+
 ## Run locally
 
 ```bash
