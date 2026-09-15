@@ -1,4 +1,4 @@
-export type JobModuleType = 'jobCost' | 'overhead' | 'workOrder'
+export type JobModuleType = 'jobCost' | 'overhead' | 'workOrder' | 'asset'
 
 export type Tenant = {
   id: string

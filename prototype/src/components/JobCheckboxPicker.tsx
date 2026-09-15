@@ -1,4 +1,3 @@
-import { useMemo } from 'react'
 import {
   ModusWcButton,
   ModusWcCheckbox,
@@ -17,7 +16,7 @@ type JobCheckboxPickerProps = {
   onToggleJob: (jobId: string, checked: boolean) => void
   onSelectAllFiltered: () => void
   onClearSelection: () => void
-  isJobCopiedToTargets: (job: IntercompanyJob) => boolean
+  hasTargetTenants: boolean
 }
 
 export function JobCheckboxPicker({
@@ -28,12 +27,13 @@ export function JobCheckboxPicker({
   onToggleJob,
   onSelectAllFiltered,
   onClearSelection,
-  isJobCopiedToTargets,
+  hasTargetTenants,
 }: JobCheckboxPickerProps) {
-  const selectableCount = useMemo(
-    () => jobs.filter((job) => !isJobCopiedToTargets(job)).length,
-    [jobs, isJobCopiedToTargets],
-  )
+  const emptyMessage = !hasTargetTenants
+    ? 'Select one or more target tenants above to see jobs you can copy.'
+    : searchQuery.trim()
+      ? 'No jobs match the current filters that still need copying to the selected tenants.'
+      : 'No jobs remain to copy for the selected tenants and department type.'
 
   return (
     <div className="flex min-h-0 flex-col gap-2">
@@ -46,6 +46,7 @@ export function JobCheckboxPicker({
         value={searchQuery}
         onInputChange={(e) => onSearchChange(readInputString(e as CustomEvent))}
         size="sm"
+        disabled={!hasTargetTenants}
       />
 
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -53,13 +54,14 @@ export function JobCheckboxPicker({
           hierarchy="p"
           size="sm"
           customClass="!m-0 text-[var(--modus-wc-color-base-content-low-contrast)]"
-          label={`${selectedJobIds.size} selected · ${selectableCount} shown`}
+          label={`${selectedJobIds.size} selected · ${jobs.length} shown`}
         />
         <div className="flex flex-wrap gap-2">
           <ModusWcButton
             variant="outlined"
             color="tertiary"
             size="sm"
+            disabled={!hasTargetTenants || jobs.length === 0}
             onButtonClick={onSelectAllFiltered}
           >
             Select all (filtered)
@@ -68,6 +70,7 @@ export function JobCheckboxPicker({
             variant="borderless"
             color="tertiary"
             size="sm"
+            disabled={selectedJobIds.size === 0}
             onButtonClick={onClearSelection}
           >
             Clear
@@ -75,15 +78,17 @@ export function JobCheckboxPicker({
         </div>
       </div>
 
-      <ModusWcTypography
-        hierarchy="p"
-        size="sm"
-        customClass="!m-0 text-[var(--modus-wc-color-base-content-low-contrast)]"
-        label='Jobs already copied to all selected tenants appear greyed with "(copied)" and cannot be selected again.'
-      />
+      <div className="flex min-h-0 flex-col gap-1">
+        <ModusWcTypography
+          hierarchy="p"
+          size="sm"
+          weight="semibold"
+          customClass="!m-0 text-[var(--modus-wc-color-base-content)]"
+          label="This list only includes jobs that have not yet been copied to all selected target tenants."
+        />
 
-      <ul
-        className="ic-job-picker-list"
+        <ul
+          className="ic-job-picker-list"
         role="group"
         aria-label="Jobs to copy"
       >
@@ -93,28 +98,19 @@ export function JobCheckboxPicker({
               hierarchy="p"
               size="sm"
               customClass="!m-0 text-[var(--modus-wc-color-base-content-low-contrast)]"
-              label="No jobs match the current filters."
+              label={emptyMessage}
             />
           </li>
         ) : (
           jobs.map((job) => {
-            const copied = isJobCopiedToTargets(job)
-            const label = copied
-              ? `${formatJobLabel(job)} (copied)`
-              : formatJobLabel(job)
+            const label = formatJobLabel(job)
 
             return (
-              <li
-                key={job.id}
-                className={copied ? 'ic-job-picker-row ic-job-picker-row--copied' : 'ic-job-picker-row'}
-              >
+              <li key={job.id} className="ic-job-picker-row">
                 <ModusWcCheckbox
                   value={selectedJobIds.has(job.id)}
-                  disabled={copied}
                   onInputChange={(e: CustomEvent) => {
-                    if (!copied) {
-                      onToggleJob(job.id, e.detail?.target?.checked ?? false)
-                    }
+                    onToggleJob(job.id, e.detail?.target?.checked ?? false)
                   }}
                   aria-label={label}
                 />
@@ -128,7 +124,8 @@ export function JobCheckboxPicker({
             )
           })
         )}
-      </ul>
+        </ul>
+      </div>
     </div>
   )
 }

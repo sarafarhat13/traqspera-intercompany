@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   ModusWcButton,
   ModusWcIcon,
@@ -111,6 +111,28 @@ export function ManageIntercompanyJobsModal({
     [jobs, departmentType, searchQuery],
   )
 
+  const visiblePickerJobs = useMemo(
+    () =>
+      selectedTenantIds.size === 0
+        ? []
+        : filteredPickerJobs.filter((job) => !isJobCopiedToTargets(job)),
+    [filteredPickerJobs, selectedTenantIds.size, isJobCopiedToTargets],
+  )
+
+  useEffect(() => {
+    const visibleIds = new Set(visiblePickerJobs.map((job) => job.id))
+    setSelectedJobIds((prev) => {
+      let changed = false
+      const next = new Set<string>()
+      for (const id of prev) {
+        if (visibleIds.has(id)) next.add(id)
+        else changed = true
+      }
+      if (!changed && next.size === prev.size) return prev
+      return next
+    })
+  }, [visiblePickerJobs])
+
   const tableRows = useMemo(() => {
     return jobsForFilters(jobs, departmentType, searchQuery)
       .map((job) => {
@@ -151,10 +173,8 @@ export function ManageIntercompanyJobsModal({
   const selectAllFiltered = () => {
     setSelectedJobIds((prev) => {
       const next = new Set(prev)
-      for (const job of filteredPickerJobs) {
-        if (!isJobCopiedToTargets(job)) {
-          next.add(job.id)
-        }
+      for (const job of visiblePickerJobs) {
+        next.add(job.id)
       }
       return next
     })
@@ -256,37 +276,6 @@ export function ManageIntercompanyJobsModal({
 
         <div slot="content" className="ic-modal-content">
           <div className="ic-modal-scroll">
-            <section className="flex flex-col gap-3" aria-labelledby="jobs-to-copy-heading">
-              <ModusWcTypography
-                id="jobs-to-copy-heading"
-                hierarchy="h3"
-                size="md"
-                weight="semibold"
-                label="Jobs To Copy"
-              />
-
-              <ModusWcSelect
-                label="Department Type"
-                value={departmentType}
-                options={departmentTypeOptions}
-                size="sm"
-                onInputChange={(e: CustomEvent) =>
-                  setDepartmentType(readInputString(e) as JobModuleType)
-                }
-              />
-
-              <JobCheckboxPicker
-                jobs={filteredPickerJobs}
-                selectedJobIds={selectedJobIds}
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
-                onToggleJob={toggleJob}
-                onSelectAllFiltered={selectAllFiltered}
-                onClearSelection={clearSelection}
-                isJobCopiedToTargets={isJobCopiedToTargets}
-              />
-            </section>
-
             <section
               className="flex flex-col gap-3"
               aria-labelledby="copy-to-tenants-heading"
@@ -309,6 +298,37 @@ export function ManageIntercompanyJobsModal({
                     return next
                   })
                 }}
+              />
+            </section>
+
+            <section className="flex flex-col gap-3" aria-labelledby="jobs-to-copy-heading">
+              <ModusWcTypography
+                id="jobs-to-copy-heading"
+                hierarchy="h3"
+                size="md"
+                weight="semibold"
+                label="Jobs To Copy"
+              />
+
+              <ModusWcSelect
+                label="Department Type"
+                value={departmentType}
+                options={departmentTypeOptions}
+                size="sm"
+                onInputChange={(e: CustomEvent) =>
+                  setDepartmentType(readInputString(e) as JobModuleType)
+                }
+              />
+
+              <JobCheckboxPicker
+                jobs={visiblePickerJobs}
+                selectedJobIds={selectedJobIds}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                onToggleJob={toggleJob}
+                onSelectAllFiltered={selectAllFiltered}
+                onClearSelection={clearSelection}
+                hasTargetTenants={selectedTenantIds.size > 0}
               />
             </section>
 

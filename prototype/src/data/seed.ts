@@ -14,6 +14,8 @@ export const DEPARTMENTS: Department[] = [
   { id: 'dept-facilities', name: 'Facilities', jobType: 'overhead' },
   { id: 'dept-field-service', name: 'Field Service', jobType: 'workOrder' },
   { id: 'dept-maintenance', name: 'Maintenance', jobType: 'workOrder' },
+  { id: 'dept-equipment', name: 'Equipment', jobType: 'asset' },
+  { id: 'dept-fleet', name: 'Fleet', jobType: 'asset' },
 ]
 
 const COPIED_TO_ALL = ['tenant-vista', 'tenant-elearn', 'tenant-demo'] as const
@@ -98,6 +100,29 @@ const WORK_ORDER_TEMPLATES: { name: string; customer: string }[] = [
   { name: 'Sprinkler Flow Test', customer: 'Mall Properties' },
 ]
 
+const ASSET_TEMPLATES: { name: string; customer: string }[] = [
+  { name: 'Excavator CAT 320', customer: 'Internal Fleet' },
+  { name: 'Bucket Truck #12', customer: 'Internal Fleet' },
+  { name: 'Portable Generator 100kW', customer: 'Internal Fleet' },
+  { name: 'Scissor Lift 26ft', customer: 'Internal Fleet' },
+  { name: 'Welding Rig Trailer', customer: 'Internal Fleet' },
+  { name: 'Forklift Warehouse A', customer: 'Internal Fleet' },
+  { name: 'Service Van Pool', customer: 'Internal Fleet' },
+  { name: 'Compact Track Loader', customer: 'Internal Fleet' },
+  { name: 'Boom Lift 60ft', customer: 'Internal Fleet' },
+  { name: 'Air Compressor Trailer', customer: 'Internal Fleet' },
+  { name: 'Concrete Saw Package', customer: 'Internal Fleet' },
+  { name: 'Light Tower Set (4)', customer: 'Internal Fleet' },
+  { name: 'Pipe Threading Machine', customer: 'Internal Fleet' },
+  { name: 'Cable Puller Winch', customer: 'Internal Fleet' },
+  { name: 'Tool Crib Inventory', customer: 'Internal Fleet' },
+  { name: 'GPS Fleet Tablets', customer: 'Internal Fleet' },
+  { name: 'Crane Rental Allocation', customer: 'Various Jobs' },
+  { name: 'Temporary Power Panel', customer: 'Job Sites' },
+  { name: 'HVAC Test Instruments', customer: 'Internal Fleet' },
+  { name: 'Safety Harness Kits', customer: 'Internal Fleet' },
+]
+
 function buildJobsForType(
   jobType: JobModuleType,
   templates: { name: string; customer: string }[],
@@ -116,6 +141,7 @@ function buildJobsForType(
       jobCost: 8,
       overhead: 3,
       workOrder: 2,
+      asset: 2,
     }
     const copyOffset = jobType === 'jobCost' ? startIndex : 0
     const alreadyCopied = offset < copiedCountByType[jobType] && index >= copyOffset
@@ -156,6 +182,14 @@ export const INITIAL_JOBS: IntercompanyJob[] = [
     ['dept-field-service', 'dept-maintenance'],
     'WO',
     200,
+    JOBS_PER_TYPE,
+  ),
+  ...buildJobsForType(
+    'asset',
+    ASSET_TEMPLATES,
+    ['dept-equipment', 'dept-fleet'],
+    'AST',
+    300,
     JOBS_PER_TYPE,
   ),
 ]
